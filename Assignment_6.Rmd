@@ -7,5 +7,65 @@ output: word_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(magrittr)
+library(Metrics)
+library(plotly)
+library(corrplot)
+library(PerformanceAnalytics)
+library(Hmisc)
+library(knitr)
+library(mctest)
+library(caret)
+library(ROCR)
+library(scales)
+library(dummies)
+library(neuralnet)
+library(class)
+library(dplyr)
+library(e1071)
+library(tree)
+library(ISLR)
+attach(Carseats)
 ```
 
+```{r, echo = TRUE}
+#1
+df <- read.csv("Credit.csv")
+df$CREDIT_EXTENDED <- NULL
+df$PROFITABLE <- ifelse(df$NPV > 0, 1, 0)
+df$PROFITABLE <- factor(df$PROFITABLE)
+df$CHK_ACCT <- factor(df$CHK_ACCT)
+df$SAV_ACCT <- factor(df$SAV_ACCT)
+df$HISTORY <- factor(df$HISTORY)
+df$JOB <- factor(df$JOB)
+df$TYPE <- factor(df$TYPE)
+df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
+df$NPV <- NULL
+
+set.seed(12345)
+
+split <- sample(nrow(df), 0.7 * nrow(df))
+dftrain <- data.frame(df[split,])
+dftest <- data.frame(df[-split,])
+```
+
+```{r, echo = TRUE}
+#2
+#Creating Classification Tree
+tree = tree(PROFITABLE ~., data = dftrain)
+summary(tree)
+plot(tree)
+text(tree, pretty = 0)
+tree
+
+# k-Fold Cross-Validation
+set.seed(123)
+cv.credit =  cv.tree(tree, FUN = prune.misclass, K = 10)
+
+tree.pred = predict(tree, dftest, type="class")
+confusion = table(tree.pred, dftest$PROFITABLE)
+confusion
+Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
+Error
+```
