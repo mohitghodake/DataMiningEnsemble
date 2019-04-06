@@ -1,0 +1,11 @@
+---
+title: "Assignment 6"
+author: "Mohit Ghodake"
+date: "April 6, 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
