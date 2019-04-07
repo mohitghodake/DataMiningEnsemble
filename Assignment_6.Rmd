@@ -26,8 +26,9 @@ library(dplyr)
 library(e1071)
 library(tree)
 library(ISLR)
-attach(Carseats)
 ```
+
+
 
 ```{r, echo = TRUE}
 #1
@@ -42,7 +43,7 @@ df$JOB <- factor(df$JOB)
 df$TYPE <- factor(df$TYPE)
 df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
 df$NPV <- NULL
-
+df$OBS. <- NULL
 set.seed(12345)
 
 split <- sample(nrow(df), 0.7 * nrow(df))
@@ -50,22 +51,99 @@ dftrain <- data.frame(df[split,])
 dftest <- data.frame(df[-split,])
 ```
 
+
+
 ```{r, echo = TRUE}
 #2
-#Creating Classification Tree
-tree = tree(PROFITABLE ~., data = dftrain)
-summary(tree)
-plot(tree)
-text(tree, pretty = 0)
-tree
+tree.credit = tree(PROFITABLE ~., data = df)
+summary(tree.credit)
+plot(tree.credit)
+text(tree.credit, pretty = 0)
 
-# k-Fold Cross-Validation
 set.seed(123)
-cv.credit =  cv.tree(tree, FUN = prune.misclass, K = 10)
 
-tree.pred = predict(tree, dftest, type="class")
-confusion = table(tree.pred, dftest$PROFITABLE)
+inTrain <- sample(nrow(Carseats), 0.5*nrow(Carseats))
+#
+train <- data.frame(df[inTrain,])
+temp <- data.frame(df[-inTrain,])
+inTrain2 <- sample(nrow(temp), 0.5*nrow(temp))
+validation <- data.frame(temp[inTrain2,])
+test <- data.frame(temp[-inTrain2,])
+rm(temp)
+
+##
+tree.credit = tree(PROFITABLE ~ ., data = train)
+summary(tree.credit)
+tree.pred = predict(tree.credit, validation, type = "class")
+confusion = table(tree.pred, validation$PROFITABLE)
 confusion
 Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
 Error
+
+#
+Size <- 1:20
+Error <- rep(0,length(Size))
+
+#
+table(validation$PROFITABLE)
+
+Error[1] = 131/269
+
+#
+for (i in 2:20) {
+  prune.credit = prune.misclass(tree.credit, best = i)
+  tree.pred = predict(prune.credit, validation , type = "class")
+  confusion = table(tree.pred, validation$PROFITABLE)
+  Error[i] = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
+}
+plot(Size, Error, type = "o", xlab = "Tree Size", ylab = "Error Rate", col = "blue")
+z = which.min(Error)
+
+#
+# Now plot the best pruned tree
+prune.credit = prune.misclass(tree.credit, best = z)
+plot(prune.credit)
+text(prune.credit, pretty = 0)
+tree.pred = predict(prune.credit, test, type = "class")
+confusion = table(tree.pred, test$PROFITABLE)
+confusion
+Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
+Error
+```
+
+
+```{r, echo = TRUE}
+#4
+student <- data.frame('AGE' = 27, 'FOREIGN' = 0, 'CHK_ACCT' = 1, 'SAV_ACCT' = 4, 'NUM_CREDITS' = 1, 'DURATION' = 12, 'REAL_ESTATE' = 0, 'EMPLOYMENT' = 1, 'JOB' = 2, 'NUM_DEPENDENTS' = 1, 'GUARANTOR' = 0, 'TYPE' = 2, 'AMOUNT_REQUESTED' = 4500, 'HISTORY' = 1, 'PRESENT_RESIDENT' = 1, 'INSTALL_RATE' = 3, 'TELEPHONE' = 1, 'OWN_RES' = 0, 'OTHER_INSTALL' = 0, 'RENT' = 1)
+
+student$AGE <- as.integer(student$AGE)
+student$CHK_ACCT <- factor(student$CHK_ACCT)
+student$SAV_ACCT <- factor(student$SAV_ACCT)
+student$NUM_CREDITS <- as.integer(student$NUM_CREDITS)
+student$DURATION <- as.integer(student$DURATION)
+student$HISTORY <- factor(student$HISTORY)
+student$PRESENT_RESIDENT <- as.integer(student$PRESENT_RESIDENT)
+student$EMPLOYMENT <- as.integer(student$EMPLOYMENT)
+student$JOB <- factor(student$JOB)
+student$NUM_DEPENDENTS <- as.integer(student$NUM_DEPENDENTS)
+student$RENT <- as.integer(student$RENT)
+student$INSTALL_RATE <- as.integer(student$INSTALL_RATE)
+student$GUARANTOR <- as.integer(student$GUARANTOR)
+student$OTHER_INSTALL <- as.integer(student$OTHER_INSTALL)
+student$OWN_RES <- as.integer(student$OWN_RES)
+student$TELEPHONE <- as.integer(student$TELEPHONE)
+student$FOREIGN <- as.integer(student$FOREIGN)
+student$REAL_ESTATE <- as.integer(student$REAL_ESTATE)
+student$TYPE <- factor(student$TYPE)
+student$AMOUNT_REQUESTED <- as.numeric(student$AMOUNT_REQUESTED)
+
+result <- predict(prune.credit, newdata = student, type = "vector")
+result
+```
+
+```{r, echo = TRUE}
+#6
+df <- read.csv('Credit.csv')
+set.seed(123)
+
 ```
