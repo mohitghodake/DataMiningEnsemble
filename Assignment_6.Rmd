@@ -62,7 +62,7 @@ text(tree.credit, pretty = 0)
 
 set.seed(123)
 
-inTrain <- sample(nrow(Carseats), 0.5*nrow(Carseats))
+inTrain <- sample(nrow(df), 0.5*nrow(df))
 #
 train <- data.frame(df[inTrain,])
 temp <- data.frame(df[-inTrain,])
@@ -81,16 +81,16 @@ Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
 Error
 
 #
-Size <- 1:20
+Size <- 1:25
 Error <- rep(0,length(Size))
 
 #
 table(validation$PROFITABLE)
 
-Error[1] = 131/269
+Error[1] = 77/250
 
 #
-for (i in 2:20) {
+for (i in 2:25) {
   prune.credit = prune.misclass(tree.credit, best = i)
   tree.pred = predict(prune.credit, validation , type = "class")
   confusion = table(tree.pred, validation$PROFITABLE)
@@ -98,6 +98,7 @@ for (i in 2:20) {
 }
 plot(Size, Error, type = "o", xlab = "Tree Size", ylab = "Error Rate", col = "blue")
 z = which.min(Error)
+z
 
 #
 # Now plot the best pruned tree
