@@ -92,3 +92,32 @@ result <- predict(prune.tree, newdata = student, type = "vector")
 result
 
 #6
+df <- read.csv("D:/Mohit/Study/GitHub/DataMiningEnsemble/Credit.csv")
+set.seed(123)
+
+df$OBS. <- NULL
+df$CREDIT_EXTENDED <- NULL
+
+df$CHK_ACCT <- factor(df$CHK_ACCT)
+df$SAV_ACCT <- factor(df$SAV_ACCT)
+df$HISTORY <- factor(df$HISTORY)
+df$JOB <- factor(df$JOB)
+df$TYPE <- factor(df$TYPE)
+df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
+
+set.seed(12345)
+split <- sample(nrow(df), 0.7 * nrow(df))
+dftrain <- data.frame(df[split,])
+dftest <- data.frame(df[-split,])
+
+regressionTree <- tree(NPV ~ ., dftrain)
+summary(regressionTree)
+plot(regressionTree)
+text(regressionTree, pretty = 0)
+
+####
+
+
+
+
+
