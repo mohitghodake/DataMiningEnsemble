@@ -1,0 +1,94 @@
+library(ggplot2)
+library(magrittr)
+library(Metrics)
+library(plotly)
+library(corrplot)
+library(PerformanceAnalytics)
+library(Hmisc)
+library(knitr)
+library(mctest)
+library(caret)
+library(ROCR)
+library(scales)
+library(dummies)
+library(neuralnet)
+library(class)
+library(dplyr)
+library(e1071)
+library(tree)
+library(ISLR)
+
+#1
+df <- read.csv("D:/Mohit/Study/GitHub/DataMiningEnsemble/Credit.csv")
+
+df$CREDIT_EXTENDED <- NULL
+df$PROFITABLE <- ifelse(df$NPV > 0, 1, 0)
+df$NPV <- NULL
+df$OBS. <- NULL
+df$CHK_ACCT <- factor(df$CHK_ACCT)
+df$SAV_ACCT <- factor(df$SAV_ACCT)
+df$HISTORY <- factor(df$HISTORY)
+df$JOB <- factor(df$JOB)
+df$TYPE <- factor(df$TYPE)
+df$PROFITABLE <- factor(df$PROFITABLE)
+df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
+
+#
+set.seed(12345)
+split <- sample(nrow(df), 0.7 * nrow(df))
+dftrain <- data.frame(df[split,])
+dftest <- data.frame(df[-split,])
+
+
+#2
+creditTree <- tree(PROFITABLE ~., dftrain)
+summary(creditTree)
+plot(creditTree)
+text(creditTree, pretty = 0)
+
+pred.credit <- predict(creditTree, newdata = dftest, type = 'class')
+table(pred.credit, dftest$PROFITABLE)
+
+
+set.seed(123)
+cv.credit = cv.tree(creditTree, FUN = prune.tree, K = 10)
+plot(cv.credit)
+
+#using best = 2
+prune.tree = prune.misclass(creditTree, best = 2)
+summary(prune.tree)
+plot(prune.tree)
+text(prune.tree, pretty = 0)
+
+pred.prune.tree = predict(prune.tree, newdata = dftest, type = 'class')
+table(pred.prune.tree, dftest$PROFITABLE)
+
+
+#4
+student <- data.frame('AGE' = 27, 'FOREIGN' = 0, 'CHK_ACCT' = 1, 'SAV_ACCT' = 4, 'NUM_CREDITS' = 1, 'DURATION' = 12, 'REAL_ESTATE' = 0, 'EMPLOYMENT' = 1, 'JOB' = 2, 'NUM_DEPENDENTS' = 1, 'GUARANTOR' = 0, 'TYPE' = 2, 'AMOUNT_REQUESTED' = 4500, 'HISTORY' = 1, 'PRESENT_RESIDENT' = 1, 'INSTALL_RATE' = 3, 'TELEPHONE' = 1, 'OWN_RES' = 0, 'OTHER_INSTALL' = 0, 'RENT' = 1)
+
+student$AGE <- as.integer(student$AGE)
+student$CHK_ACCT <- factor(student$CHK_ACCT)
+student$SAV_ACCT <- factor(student$SAV_ACCT)
+student$NUM_CREDITS <- as.integer(student$NUM_CREDITS)
+student$DURATION <- as.integer(student$DURATION)
+student$HISTORY <- factor(student$HISTORY)
+student$PRESENT_RESIDENT <- as.integer(student$PRESENT_RESIDENT)
+student$EMPLOYMENT <- as.integer(student$EMPLOYMENT)
+student$JOB <- factor(student$JOB)
+student$NUM_DEPENDENTS <- as.integer(student$NUM_DEPENDENTS)
+student$RENT <- as.integer(student$RENT)
+student$INSTALL_RATE <- as.integer(student$INSTALL_RATE)
+student$GUARANTOR <- as.integer(student$GUARANTOR)
+student$OTHER_INSTALL <- as.integer(student$OTHER_INSTALL)
+student$OWN_RES <- as.integer(student$OWN_RES)
+student$TELEPHONE <- as.integer(student$TELEPHONE)
+student$FOREIGN <- as.integer(student$FOREIGN)
+student$REAL_ESTATE <- as.integer(student$REAL_ESTATE)
+student$TYPE <- factor(student$TYPE)
+student$AMOUNT_REQUESTED <- as.numeric(student$AMOUNT_REQUESTED)
+
+result <- predict(prune.tree, newdata = student, type = "vector")
+result
+
+#6
