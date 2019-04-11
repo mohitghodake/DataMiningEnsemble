@@ -116,8 +116,38 @@ plot(regressionTree)
 text(regressionTree, pretty = 0)
 
 ####
+cv.credit.regression = cv.tree(regressionTree, FUN = prune.tree, K = 10)
+plot(cv.credit.regression)
+
+#using best = 10
+prune.regression.tree = prune.tree(regressionTree, best = 10)
+summary(prune.regression.tree)
+plot(prune.regression.tree)
+text(prune.regression.tree, pretty = 0)
+
+
+#7
 
 
 
+#9
+df <- read.csv("D:/Mohit/Study/GitHub/DataMiningEnsemble/Credit.csv")
+df$OBS. <- NULL
+df$CREDIT_EXTENDED <- NULL
+df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
+df$CHK_ACCT <- factor(df$CHK_ACCT)
+df$SAV_ACCT <- factor(df$SAV_ACCT)
+df$HISTORY <- factor(df$HISTORY)
+df$JOB <- factor(df$JOB)
+df$TYPE <- factor(df$TYPE)
 
+set.seed(12345)
+split <- sample(nrow(df), 0.7 * nrow(df))
+dftrain <- data.frame(df[split,])
+dftest <- data.frame(df[-split,])
 
+regressionModel <- lm(NPV ~ ., data = dftrain)
+summary(regressionModel)
+
+dftrain$PREDICTED_NPV <- regressionModel$fitted.values
+dftrain

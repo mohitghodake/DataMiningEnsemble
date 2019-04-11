@@ -32,20 +32,22 @@ library(ISLR)
 
 ```{r, echo = TRUE}
 #1
-df <- read.csv("Credit.csv")
+df <- read.csv("D:/Mohit/Study/GitHub/DataMiningEnsemble/Credit.csv")
+
 df$CREDIT_EXTENDED <- NULL
 df$PROFITABLE <- ifelse(df$NPV > 0, 1, 0)
-df$PROFITABLE <- factor(df$PROFITABLE)
+df$NPV <- NULL
+df$OBS. <- NULL
 df$CHK_ACCT <- factor(df$CHK_ACCT)
 df$SAV_ACCT <- factor(df$SAV_ACCT)
 df$HISTORY <- factor(df$HISTORY)
 df$JOB <- factor(df$JOB)
 df$TYPE <- factor(df$TYPE)
+df$PROFITABLE <- factor(df$PROFITABLE)
 df$AMOUNT_REQUESTED <- as.numeric(df$AMOUNT_REQUESTED)
-df$NPV <- NULL
-df$OBS. <- NULL
-set.seed(12345)
 
+#
+set.seed(12345)
 split <- sample(nrow(df), 0.7 * nrow(df))
 dftrain <- data.frame(df[split,])
 dftest <- data.frame(df[-split,])
@@ -55,61 +57,27 @@ dftest <- data.frame(df[-split,])
 
 ```{r, echo = TRUE}
 #2
-tree.credit = tree(PROFITABLE ~., data = df)
-summary(tree.credit)
-plot(tree.credit)
-text(tree.credit, pretty = 0)
+creditTree <- tree(PROFITABLE ~., dftrain)
+summary(creditTree)
+plot(creditTree)
+text(creditTree, pretty = 0)
+
+pred.credit <- predict(creditTree, newdata = dftest, type = 'class')
+table(pred.credit, dftest$PROFITABLE)
+
 
 set.seed(123)
+cv.credit = cv.tree(creditTree, FUN = prune.tree, K = 10)
+plot(cv.credit)
 
-inTrain <- sample(nrow(df), 0.5*nrow(df))
-#
-train <- data.frame(df[inTrain,])
-temp <- data.frame(df[-inTrain,])
-inTrain2 <- sample(nrow(temp), 0.5*nrow(temp))
-validation <- data.frame(temp[inTrain2,])
-test <- data.frame(temp[-inTrain2,])
-rm(temp)
+#using best = 2
+prune.tree = prune.misclass(creditTree, best = 2)
+summary(prune.tree)
+plot(prune.tree)
+text(prune.tree, pretty = 0)
 
-##
-tree.credit = tree(PROFITABLE ~ ., data = train)
-summary(tree.credit)
-tree.pred = predict(tree.credit, validation, type = "class")
-confusion = table(tree.pred, validation$PROFITABLE)
-confusion
-Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
-Error
-
-#
-Size <- 1:25
-Error <- rep(0,length(Size))
-
-#
-table(validation$PROFITABLE)
-
-Error[1] = 77/250
-
-#
-for (i in 2:25) {
-  prune.credit = prune.misclass(tree.credit, best = i)
-  tree.pred = predict(prune.credit, validation , type = "class")
-  confusion = table(tree.pred, validation$PROFITABLE)
-  Error[i] = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
-}
-plot(Size, Error, type = "o", xlab = "Tree Size", ylab = "Error Rate", col = "blue")
-z = which.min(Error)
-z
-
-#
-# Now plot the best pruned tree
-prune.credit = prune.misclass(tree.credit, best = z)
-plot(prune.credit)
-text(prune.credit, pretty = 0)
-tree.pred = predict(prune.credit, test, type = "class")
-confusion = table(tree.pred, test$PROFITABLE)
-confusion
-Error = (confusion[1, 2] + confusion[2, 1]) / sum(confusion)
-Error
+pred.prune.tree = predict(prune.tree, newdata = dftest, type = 'class')
+table(pred.prune.tree, dftest$PROFITABLE)
 ```
 
 
@@ -138,7 +106,7 @@ student$REAL_ESTATE <- as.integer(student$REAL_ESTATE)
 student$TYPE <- factor(student$TYPE)
 student$AMOUNT_REQUESTED <- as.numeric(student$AMOUNT_REQUESTED)
 
-result <- predict(prune.credit, newdata = student, type = "vector")
+result <- predict(prune.tree, newdata = student, type = "vector")
 result
 ```
 
