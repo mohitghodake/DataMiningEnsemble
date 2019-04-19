@@ -139,8 +139,8 @@ text(regressionTree, pretty = 0)
 cv.credit.regression = cv.tree(regressionTree, FUN = prune.tree, K = 10)
 plot(cv.credit.regression)
 
-#using best = 17
-prune.regression.tree = prune.tree(regressionTree, best = 17)
+#using best = 10
+prune.regression.tree = prune.tree(regressionTree, best = 10)
 summary(prune.regression.tree)
 plot(prune.regression.tree)
 text(prune.regression.tree, pretty = 0)
@@ -192,8 +192,24 @@ max = which.max(sum)
 optimalCutoff = sortdftrain$predReg[max]
 
 optimalCutoff
-
-
 ###
+```
 
+
+```{r, echo = TRUE}
+#10
+predNPVTest <- predict(regressionModel, newdata = dftest, type = "response")
+count <- 0
+profitableCustomer <- rep(0, nrow(dftest))
+for(i in 1:300){
+  if(predNPVTest[i] > optimalCutoff){
+    profitableCustomer[i] <- predNPVTest[i]
+    count = count + 1}
+}
+count
+
+# average profit per  profitable customer
+(mean(profitableCustomer))
+# avg profit for entire test set
+(sum(predNPVTest))
 ```
